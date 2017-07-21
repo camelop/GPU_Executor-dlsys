@@ -115,7 +115,7 @@ def test_matrix_multiply():
     gpu_op.matrix_multiply(arr_x, False, arr_y, True, arr_z)
     z = arr_z.asnumpy()
     np.testing.assert_allclose(np.dot(x, np.transpose(y)), z, rtol=1e-5)
-    
+
     x = np.random.uniform(0, 10, size=(500, 1000)).astype(np.float32)
     y = np.random.uniform(0, 10, size=(2000, 500)).astype(np.float32)
     arr_x = ndarray.array(x, ctx=ctx)

@@ -152,8 +152,9 @@ class AddOp(Op):
 
     def infer_shape(self, node, input_shapes):
         """Need to handle input_vals[0].shape != input_vals[1].shape"""
-        """TODO: Your code here"""
-
+        """DONE: My code here"""
+        assert(input_shapes[0] == input_shapes[1])
+        return input_shapes[0]
 
 class AddByConstOp(Op):
     def __call__(self, node_A, const_val):
@@ -175,8 +176,9 @@ class AddByConstOp(Op):
         return [output_grad]
 
     def infer_shape(self, node, input_shapes):
-        """TODO: Your code here"""
-
+        """DONE: My code here"""
+        assert(input_shapes[0] == node.const_attr.shape)
+        return input_shapes[0]
 
 class MulOp(Op):
     def __call__(self, node_A, node_B):
@@ -208,8 +210,9 @@ class MulOp(Op):
 
     def infer_shape(self, node, input_shapes):
         """Need to handle input_vals[0].shape != input_vals[1].shape"""
-        """TODO: Your code here"""
-
+        """DONE: My code here"""
+        assert(input_shapes[0] == input_shapes[1])
+        return input_shapes[0]
 
 class MulByConstOp(Op):
     def __call__(self, node_A, const_val):
@@ -231,7 +234,9 @@ class MulByConstOp(Op):
         return [node.const_attr * output_grad]
 
     def infer_shape(self, node, input_shapes):
-        """TODO: Your code here"""
+        """DONE: My code here"""
+        assert(input_shapes[0] == node.const_attr.shape)
+        return input_shapes[0]
 
 
 class MatMulOp(Op):
@@ -300,7 +305,20 @@ class MatMulOp(Op):
 
     def infer_shape(self, node, input_shapes):
         """TODO: Your code here"""
-
+        if node.matmul_attr_trans_A:
+            a = input_shapes[0][1]
+            b = input_shapes[0][0]
+        else:
+            a = input_shapes[0][0]
+            b = input_shapes[0][1]
+        if node.matmul_attr_trans_B:
+            c = input_shapes[1][1]
+            d = input_shapes[1][0]
+        else:
+            c = input_shapes[1][0]
+            d = input_shapes[1][1]
+        assert(b == c)
+        return (a, d)
 
 class PlaceholderOp(Op):
     def __call__(self):
@@ -340,7 +358,6 @@ class ZerosLikeOp(Op):
         """If input_shape is a vector, simpler to return (1,)"""
         """TODO: Your code here"""
 
-
 class OnesLikeOp(Op):
     def __call__(self, node_A):
         """Creates a node that represents np.ones(node_A.shape)."""
@@ -361,8 +378,9 @@ class OnesLikeOp(Op):
 
     def infer_shape(self, node, input_shapes):
         """If input_shape is a vector, simpler to return (1,)"""
-        """TODO: Your code here"""
-
+        """DONE: My code here"""
+        if len(input_shapes[0]) <= 2: return (1,)
+        return input_shapes[0]
 
 class ReduceSumAxisZeroOp(Op):
     def __call__(self, node_A):
@@ -391,7 +409,11 @@ class ReduceSumAxisZeroOp(Op):
         for vector, simpler to do (3,)->(1,)
         """
         """TODO: Your code here"""
-
+        if len(input_shapes[0]) <= 2: return (1,)
+        ret = []
+        for i in range(1,len(input_shapes[0])):
+            ret.append(input_shapes[0][i])
+        return tuple(ret)
 
 class BroadcastToOp(Op):
     def __call__(self, node_A, node_B):
@@ -453,6 +475,7 @@ class SoftmaxCrossEntropyOp(Op):
 
     def infer_shape(self, node, input_shapes):
         """TODO: Your code here"""
+        return (1,)
 
 
 class SoftmaxOp(Op):
@@ -476,7 +499,6 @@ class SoftmaxOp(Op):
 
     def infer_shape(self, node, input_shapes):
         """TODO: Your code here"""
-
 
 class ReluOp(Op):
     def __call__(self, node_A):

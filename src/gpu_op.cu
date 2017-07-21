@@ -6,6 +6,29 @@
 
 /* TODO: Your code here */
 /* all your GPU kernel code, e.g. matrix_softmax_cross_entropy_kernel */
+__global__ void array_set_kernel(int size, float* array, float value) {
+    int y = blockIdx.x * blockDim.x * blockDim.y * blockDim.z
+          + threadIdx.z * blockDim.x * blockDim.y
+          + threadIdx.y * blockDim.x
+          + threadIdx.x;
+    array[y] = value;
+}
+
+__global__ void matrix_softmax_kernel(int nrow, int ncol,
+                                      const float* input,
+                                      float* output) {
+    int y = blockIdx.x * blockDim.x * blockDim.y + threadIdx.y * blockDim.x +
+            threadIdx.x;
+    if (y >= nrow) return;
+    input += y * ncol;
+    output += y * ncol;
+    float maxval = *input;
+    for (int x=1; x < ncol; ++x) maxval = max(maxval, input[x]);
+    float sum = 0;
+    float (int x = 0; x < ncol; ++x) sum += exp(input[x] - maxval);
+    float (int x = 0; x < ncol; ++x) output[x] = exp(input[x]) / sum;
+}
+
 
 // y = inputs[0], y_ = inputs[1]
 // np.mean(-np.sum(y_ * np.log(softmax(y)), axis=1), keepdims=True)
@@ -53,6 +76,24 @@ __global__ void matrix_softmax_cross_entropy_kernel(int nrow, int ncol,
 }
 
 int DLGpuArraySet(DLArrayHandle arr, float value) { /* TODO: Your code here */
+  int size = arr->shape[0];
+  assert(size <= 1024 * 1024 * 4);
+  float *arr = (float *)arr->data;
+  float val = value;
+  dim3 threads;
+  if (size <= 1024) {
+      threads.x = size;
+  } else {
+      if (size < 1024 * 1024) {
+          threads.x = 1024;
+          threads.y = size / 1024;
+      } else {
+          threads.x = 1024;
+          threads.y = 1024;
+          threads.z = size / 1024 / 1024;
+      }
+  }
+  array_set_kernel<<<1, threads >>>(size, arr, val);
   return 0;
 }
 
@@ -112,7 +153,23 @@ int DLGpuReluGradient(const DLArrayHandle input, const DLArrayHandle in_grad,
 }
 
 int DLGpuSoftmax(const DLArrayHandle input, DLArrayHandle output) {
-  /* TODO: Your code here */
+  /* DONE: My code here */
+  assert(input->ndim == 2);
+  assert(output->ndim == 1);
+  int nrow = input->shape[0];
+  assert(nrow <= 1024 * 4);
+  int ncol = input->shape[1];
+  const float *input_data = (const float *)input->data;
+  float *output_data = (float *)output->data;
+  dim3 threads;
+  if (nrow <= 1024) {
+      threads.x = nrow;
+  } else {
+      threads.x = 1024;
+      threads.y = (nrow + 1023) / 1024;
+  }
+  matrix_softmax_kernel<<<1, threads>>>(
+      nrow, ncol, input_data, output_data);
   return 0;
 }
 
@@ -142,7 +199,7 @@ int DLGpuSoftmaxCrossEntropy(const DLArrayHandle input_a,
   }
   // 1 block, each block with 'threads' number of threads with 'nrow' shared
   // memory size
-  matrix_softmax_cross_entropy_kernel<<<1, threads, nrow * sizeof(float)>>>(
+  matrix_softmax_cross_entropy_kernel<<<1, threads >>>(
       nrow, ncol, input_data_a, input_data_b, output_data);
   return 0;
 }
