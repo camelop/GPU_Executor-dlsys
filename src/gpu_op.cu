@@ -21,7 +21,7 @@ __global__ void broadcast_to_kernel(const float* input, float* output, int lengt
         for (int i=0; i<length; i++) output[s+i] = val;
 }
 
-__global__ void array_set_kernel(int size, float* array, float value) {
+__global__ void array_set_kernel(float* array, float value) {
         int y = blockIdx.x * 1024 + threadIdx.x;
         array[y] = value;
 }
@@ -92,7 +92,7 @@ int DLGpuArraySet(DLArrayHandle arr, float value) {
         dim3 threads;
         threads.x = size % 1024;
         int nblocks = (size + 1023) / 1024;
-        array_set_kernel<<<nblocks, threads >>>(size, array, val);
+        array_set_kernel<<<nblocks, threads >>>(array, val);
         return 0;
 }
 
