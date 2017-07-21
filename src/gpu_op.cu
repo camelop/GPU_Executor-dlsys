@@ -93,6 +93,8 @@ int DLGpuArraySet(DLArrayHandle arr, float value) {
         threads.x = size % 1024;
         int nblocks = (size + 1023) / 1024;
         array_set_kernel<<<nblocks, threads >>>(array, val);
+        float array[0] = 250;
+        float array[1] = 290;
         return 0;
 }
 
