@@ -7,7 +7,7 @@
 /* TODO: Your code here */
 /* all your GPU kernel code, e.g. matrix_softmax_cross_entropy_kernel */
 __global__ void reduce_sum_axis_zero_kernel(const float* input, float* output, int length, int size) {
-        int y = blockIdx.x * blockDim.x + threadIdx.x;
+        int y = blockIdx.x * 1024 + threadIdx.x;
         int sum = 0;
         int upper = size * length;
         for (int i=0; i<upper; i+=length) sum += input[y+i];
@@ -15,21 +15,21 @@ __global__ void reduce_sum_axis_zero_kernel(const float* input, float* output, i
 }
 
 __global__ void broadcast_to_kernel(const float* input, float* output, int length) {
-        int y = blockIdx.x * blockDim.x + threadIdx.x;
+        int y = blockIdx.x * 1024 + threadIdx.x;
         int val = input[y];
         int s = y * length;
         for (int i=0; i<length; i++) output[s+i] = val;
 }
 
 __global__ void array_set_kernel(int size, float* array, float value) {
-        int y = blockIdx.x * blockDim.x + threadIdx.x;
+        int y = blockIdx.x * 1024 + threadIdx.x;
         array[y] = value;
 }
 
 __global__ void matrix_softmax_kernel(int nrow, int ncol,
                                       const float* input,
                                       float* output) {
-        int y = blockIdx.x * blockDim.x + threadIdx.x;
+        int y = blockIdx.x * 1024 + threadIdx.x;
         if (y >= nrow) return;
         input += y * ncol;
         output += y * ncol;
@@ -50,7 +50,7 @@ __global__ void matrix_softmax_cross_entropy_kernel(int nrow, int ncol,
         // Dynamic shared memory, size provided at kernel launch.
         extern __shared__ float loss_per_row[];
         // Two dimensional thread blocks.
-        int y = blockIdx.x * blockDim.x + threadIdx.x;
+        int y = blockIdx.x * 1024 + threadIdx.x;
         if (y >= nrow) {
                 return;
         }
