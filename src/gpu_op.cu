@@ -25,8 +25,8 @@ __global__ void matrix_softmax_kernel(int nrow, int ncol,
     float maxval = *input;
     for (int x=1; x < ncol; ++x) maxval = max(maxval, input[x]);
     float sum = 0;
-    float (int x = 0; x < ncol; ++x) sum += exp(input[x] - maxval);
-    float (int x = 0; x < ncol; ++x) output[x] = exp(input[x]) / sum;
+    for (int x = 0; x < ncol; ++x) sum += exp(input[x] - maxval);
+    for (int x = 0; x < ncol; ++x) output[x] = exp(input[x]) / sum;
 }
 
 
@@ -78,7 +78,7 @@ __global__ void matrix_softmax_cross_entropy_kernel(int nrow, int ncol,
 int DLGpuArraySet(DLArrayHandle arr, float value) { /* TODO: Your code here */
   int size = arr->shape[0];
   assert(size <= 1024 * 1024 * 4);
-  float *arr = (float *)arr->data;
+  float *array = (float *)arr->data;
   float val = value;
   dim3 threads;
   if (size <= 1024) {
@@ -93,7 +93,7 @@ int DLGpuArraySet(DLArrayHandle arr, float value) { /* TODO: Your code here */
           threads.z = size / 1024 / 1024;
       }
   }
-  array_set_kernel<<<1, threads >>>(size, arr, val);
+  array_set_kernel<<<1, threads >>>(size, array, val);
   return 0;
 }
 
