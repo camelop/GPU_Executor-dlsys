@@ -9,8 +9,9 @@ def test_array_set():
     arr_x = ndarray.empty(shape, ctx=ctx)
     gpu_op.array_set(arr_x, 1.)
     x = arr_x.asnumpy()
-    for i in range(500 * 200):
-        if x[i] != 1.: print(i)
+    for i in range(500):
+        for j in range(200):
+            if (x[i][j] != 1.): print((i,j))
     np.testing.assert_allclose(np.ones(shape), x)
     # zeroslike
     gpu_op.array_set(arr_x, 0.)
