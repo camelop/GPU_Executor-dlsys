@@ -7,6 +7,7 @@ from . import ndarray, gpu_op
 
 class Node(object):
     """Node in a computation graph."""
+
     def __init__(self):
         """Constructor, new node is indirectly created by Op object call method.
 
@@ -64,6 +65,7 @@ def Variable(name):
 
 class Op(object):
     """Op represents operations performed on nodes."""
+
     def __call__(self):
         """Create a new node and associate the op object with the node.
 
@@ -156,6 +158,7 @@ class AddOp(Op):
         assert(input_shapes[0] == input_shapes[1])
         return input_shapes[0]
 
+
 class AddByConstOp(Op):
     def __call__(self, node_A, const_val):
         new_node = Op.__call__(self)
@@ -179,6 +182,7 @@ class AddByConstOp(Op):
         """DONE: My code here"""
         assert(input_shapes[0] == node.const_attr.shape)
         return input_shapes[0]
+
 
 class MulOp(Op):
     def __call__(self, node_A, node_B):
@@ -213,6 +217,7 @@ class MulOp(Op):
         """DONE: My code here"""
         assert(input_shapes[0] == input_shapes[1])
         return input_shapes[0]
+
 
 class MulByConstOp(Op):
     def __call__(self, node_A, const_val):
@@ -320,6 +325,7 @@ class MatMulOp(Op):
         assert(b == c)
         return (a, d)
 
+
 class PlaceholderOp(Op):
     def __call__(self):
         """Creates a variable node."""
@@ -358,6 +364,7 @@ class ZerosLikeOp(Op):
         """If input_shape is a vector, simpler to return (1,)"""
         """TODO: Your code here"""
 
+
 class OnesLikeOp(Op):
     def __call__(self, node_A):
         """Creates a node that represents np.ones(node_A.shape)."""
@@ -379,8 +386,10 @@ class OnesLikeOp(Op):
     def infer_shape(self, node, input_shapes):
         """If input_shape is a vector, simpler to return (1,)"""
         """DONE: My code here"""
-        if len(input_shapes[0]) <= 2: return (1,)
+        if len(input_shapes[0]) <= 2:
+            return (1,)
         return input_shapes[0]
+
 
 class ReduceSumAxisZeroOp(Op):
     def __call__(self, node_A):
@@ -408,12 +417,14 @@ class ReduceSumAxisZeroOp(Op):
         e.g. (3,4,5)->(4,5)
         for vector, simpler to do (3,)->(1,)
         """
-        """TODO: Your code here"""
-        if len(input_shapes[0]) <= 2: return (1,)
+        """DONE: My code here"""
+        if len(input_shapes[0]) <= 2:
+            return (1,)
         ret = []
-        for i in range(1,len(input_shapes[0])):
+        for i in range(1, len(input_shapes[0])):
             ret.append(input_shapes[0][i])
         return tuple(ret)
+
 
 class BroadcastToOp(Op):
     def __call__(self, node_A, node_B):
@@ -422,11 +433,12 @@ class BroadcastToOp(Op):
         """
         new_node = Op.__call__(self)
         new_node.inputs = [node_A, node_B]
-        new_node.name = "BroadcastTo(%s,%s.shape)" % (node_A.name, node_B.name)
+        new_node.name = "BroadcastTo(%s,%s.shape)" % (
+            node_A.name, node_B.name)
         return new_node
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
-        assert(len(input_vals)==2)
+        assert(len(input_vals) == 2)
         if use_numpy:
             output_val[:] = np.broadcast_to(input_vals[0], input_vals[1].shape)
         else:
@@ -439,6 +451,7 @@ class BroadcastToOp(Op):
 
     def infer_shape(self, node, input_shapes):
         """TODO: Your code here"""
+        return node.input_vals[1].shape
 
 
 def softmax_func(y):
@@ -469,7 +482,8 @@ class SoftmaxCrossEntropyOp(Op):
             gpu_op.softmax_cross_entropy(y, y_, output_val)
 
     def gradient(self, node, output_grad):
-        grad_A = (softmax_op(node.inputs[0]) + -1 * node.inputs[1])*output_grad
+        grad_A = (softmax_op(node.inputs[0]) + -
+                  1 * node.inputs[1]) * output_grad
         grad_B = zeroslike_op(node.inputs[1])
         return [grad_A, grad_B]
 
@@ -499,6 +513,7 @@ class SoftmaxOp(Op):
 
     def infer_shape(self, node, input_shapes):
         """TODO: Your code here"""
+
 
 class ReluOp(Op):
     def __call__(self, node_A):
@@ -563,6 +578,7 @@ relu_gradient_op = ReluGradientOp()
 
 class Executor(object):
     """Executor computes values for given set of nodes in computation graph."""
+
     def __init__(self, eval_node_list, ctx=None):
         """
         Parameters

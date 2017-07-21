@@ -31,7 +31,8 @@ build/obj/%.o: src/%.cc
 build/obj/%.o: src/%.cu
 	@mkdir -p build/obj
 	$(NVCC) $(ARCH) $(NVCC_FLAGS) -c $< -o $@
-
+export:
+	export PYTHONPATH="${PYTHONPATH}:/home/lxy/gpu_ex/GPU_Executor-dlsys/python"
 clean:
 	rm -rf build
 
