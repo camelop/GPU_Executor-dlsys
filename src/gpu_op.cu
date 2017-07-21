@@ -114,8 +114,8 @@ int DLGpuBroadcastTo(const DLArrayHandle input, DLArrayHandle output) {
         const float* input_data = (const float*) input->data;
         float* output_data = (float*) output->data;
         dim3 threads;
-        threads.x = nrow % 1024;
-        int nblocks = nrow / 1024;
+        threads.x = size % 1024;
+        int nblocks = size / 1024;
         broadcast_to_kernel <<< nblocks, threads >>> (input_data, output_data, length);
         return 0;
 }
