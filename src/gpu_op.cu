@@ -10,7 +10,8 @@ __global__ void reduce_sum_axis_zero_kernel(const float* input, float* output, i
         int y = blockIdx.x * blockDim.x + threadIdx.x;
         int sum = 0;
         int upper = size * length;
-        for (int i=0; i<upper; i+=length) output[y] = input[y+i];   
+        for (int i=0; i<upper; i+=length) sum += input[y+i];
+        output[y] = sum;
 }
 
 __global__ void broadcast_to_kernel(const float* input, float* output, int length) {
