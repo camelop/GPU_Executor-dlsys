@@ -180,7 +180,7 @@ int DLGpuSoftmax(const DLArrayHandle input, DLArrayHandle output) {
         float *output_data = (float *)output->data;
         dim3 threads;
         threads.x = nrow % 1024;
-        int nblocks = (size + 1023) / 1024;
+        int nblocks = (nrow + 1023) / 1024;
         matrix_softmax_kernel<<<nblocks, threads>>>(
                 nrow, ncol, input_data, output_data);
         return 0;
@@ -205,7 +205,7 @@ int DLGpuSoftmaxCrossEntropy(const DLArrayHandle input_a,
         float *output_data = (float *)output->data;
         dim3 threads;
         threads.x = nrow % 1024;
-        int nblocks = (size + 1023) / 1024;
+        int nblocks = (nrow + 1023) / 1024;
         // 1 block, each block with 'threads' number of threads with 'nrow' shared
         // memory size
         matrix_softmax_cross_entropy_kernel<<<nblocks, threads >>>(
