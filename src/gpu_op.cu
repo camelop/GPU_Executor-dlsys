@@ -23,7 +23,7 @@ __global__ void broadcast_to_kernel(const float* input, float* output, int lengt
 
 __global__ void array_set_kernel(int size, float* array, float value) {
         int y = blockIdx.x * 1024 + threadIdx.x;
-        array[y] = value;
+        array[y] = y;
 }
 
 __global__ void matrix_softmax_kernel(int nrow, int ncol,
