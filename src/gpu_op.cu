@@ -85,24 +85,14 @@ __global__ void matrix_softmax_cross_entropy_kernel(int nrow, int ncol,
         }
 }
 
-int DLGpuArraySet(DLArrayHandle arr, float value) { /* TODO: Your code here */
+int DLGpuArraySet(DLArrayHandle arr, float value) {
         int size = arr->shape[0];
         float *array = (float *)arr->data;
         float val = value;
         dim3 threads;
-        if (size <= 1024) {
-                threads.x = size;
-        } else {
-                if (size < 1024 * 1024) {
-                        threads.x = 1024;
-                        threads.y = size / 1024;
-                } else {
-                        threads.x = 1024;
-                        threads.y = 1024;
-                        threads.z = size / 1024 / 1024;
-                }
-        }
-        array_set_kernel<<<1, threads >>>(size, array, val);
+        threads.x = size % 1024;
+        int nblocks = size / 1024;
+        array_set_kernel<<<nblocks, threads >>>(size, array, val);
         return 0;
 }
 
