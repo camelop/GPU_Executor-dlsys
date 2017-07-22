@@ -10,7 +10,7 @@
 /* TODO: Your code here */
 /* all your GPU kernel code, e.g. matrix_softmax_cross_entropy_kernel */
 __global__ void reduce_sum_axis_zero_kernel(const float* input, float* output, int length, int size) {
-        int y = blockIdx.x * THREADS_PER_BLOCK + threadIdx.x;
+        int y = blockIdx.x * blockDim.x + threadIdx.x;
         if (y >= length) return;
         int sum = 0;
         int upper = size * length;
@@ -19,11 +19,11 @@ __global__ void reduce_sum_axis_zero_kernel(const float* input, float* output, i
 }
 
 __global__ void broadcast_to_kernel(const float* input, float* output, int length, int size) {
-        int y = blockIdx.x * THREADS_PER_BLOCK + threadIdx.x;
-        if (y >= size) return;
+        int y = blockIdx.x * blockDim.x + threadIdx.x;
+        if (y >= length) return;
         int val = input[y];
-        int s = y * length;
-        for (int i=0; i<length; i++) output[s+i] = val;
+        int upper = length*size;
+        for (int i=y; i<upper; i+=length) output[i] = val;
 }
 
 __global__ void array_set_kernel(int size, float* array, float value) {
@@ -93,29 +93,25 @@ int DLGpuArraySet(DLArrayHandle arr, float value) {
         int size = arr->shape[0];
         int ndim = arr->ndim;
         for (int i=1; i<ndim; i++) size*=arr->shape[i];
-        printf("size:%d\n",size);
         float *array = (float *)arr->data;
         float val = value;
         dim3 threads;
         threads.x = THREADS_PER_BLOCK;
         int nblocks = (size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
-        printf("blocks:%d\n",nblocks);
         array_set_kernel<<<nblocks, threads >>>(size, array, val);
-        //array[0] = 250;
-        //array[1] = 290;
         return 0;
 }
 
 int DLGpuBroadcastTo(const DLArrayHandle input, DLArrayHandle output) {
-        int size = input->shape[0];
+        int size = output->shape[0];
         int ndim = input->ndim;
         int length = 1;
-        for (int i=1; i<ndim; i++) length*=input->shape[i];
+        for (int i=0; i<ndim; i++) length*=input->shape[i];
         const float* input_data = (const float*) input->data;
         float* output_data = (float*) output->data;
         dim3 threads;
         threads.x = THREADS_PER_BLOCK;
-        int nblocks = (size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+        int nblocks = (length + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
         broadcast_to_kernel <<< nblocks, threads >>> (input_data, output_data, length, size);
         return 0;
 }
