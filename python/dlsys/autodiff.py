@@ -616,7 +616,7 @@ class Executor(object):
         self.ctx = ctx
         self.topo_order = find_topo_sort(self.eval_node_list)
         self.node_to_shape_map = None
-        self.node_to_arr_map = None
+        self.node_to_arr_map = {}
         self.feed_shapes = None
 
     def infer_shape(self, feed_shapes):
