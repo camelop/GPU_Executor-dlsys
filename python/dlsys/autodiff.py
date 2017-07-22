@@ -435,7 +435,7 @@ class ReduceSumAxisZeroOp(Op):
         for vector, simpler to do (3,)->(1,)
         """
         """DONE: My code here"""
-        if len(input_shapes[0]) <= 2:
+        if len(input_shapes[0]) == 1:
             return (1,)
         return input_shapes[0][1:]
 
@@ -755,6 +755,9 @@ class Executor(object):
             # plan memory if using GPU
             if (not use_numpy):
                 self.memory_plan(feed_shapes)
+
+        print("debug_shape: ")
+        print(self.node_to_shape_map)
 
         # Traverse graph in topo order and compute values for all nodes.
         for node in self.topo_order:
