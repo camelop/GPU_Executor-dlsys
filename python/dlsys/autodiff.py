@@ -754,7 +754,7 @@ class Executor(object):
             self.infer_shape(feed_shapes)
             self.feed_shapes = feed_shapes
             # plan memory if using GPU
-            if (not use_numpy) and (isinstance(self.node_to_arr_map, NoneType)):
+            if (not use_numpy) and (not isinstance(self.node_to_arr_map, dict)):
                 self.memory_plan(feed_shapes)
 
         '''
