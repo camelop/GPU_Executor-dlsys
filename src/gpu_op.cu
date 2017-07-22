@@ -12,9 +12,9 @@
 __global__ void reduce_sum_axis_zero_kernel(const float* input, float* output, int length, int size) {
         int y = blockIdx.x * blockDim.x + threadIdx.x;
         if (y >= length) return;
-        int sum = 0;
+        float sum = 0;
         int upper = size * length;
-        for (int i=0; i<upper; i+=length) sum += input[y+i];
+        for (int i=y; i<upper; i+=length) sum += input[i];
         output[y] = sum;
 }
 
@@ -125,7 +125,7 @@ int DLGpuReduceSumAxisZero(const DLArrayHandle input, DLArrayHandle output) {
         float* output_data = (float*) output->data;
         dim3 threads;
         threads.x = THREADS_PER_BLOCK;
-        int nblocks = (size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+        int nblocks = (length + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
         reduce_sum_axis_zero_kernel <<< nblocks, threads >>> (input_data, output_data, length, size);
         return 0;
 }
