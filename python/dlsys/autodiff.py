@@ -638,10 +638,9 @@ class Executor(object):
         for node in self.topo_order:
             if node in self.node_to_shape_map:
                 continue
-            self.node_to_shape_map[node]
-                = node.op.infer_shape(
-                    node,
-                    [self.node_to_shape_map[input]] for input in node.inputs)
+            self.node_to_shape_map[node] = node.op.infer_shape(
+                node,
+                [self.node_to_shape_map[input]] for input in node.inputs)
 
     def memory_plan(self, feed_shapes):
         """Allocates ndarray.NDArray for every node except feed_dict nodes.
