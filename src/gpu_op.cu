@@ -86,7 +86,7 @@ __global__ void matrix_softmax_kernel(int nrow, int ncol,
         for (int x=1; x < ncol; ++x) maxval = max(maxval, input[x]);
         float sum = 0;
         for (int x = 0; x < ncol; ++x) sum += exp(input[x] - maxval);
-        for (int x = 0; x < ncol; ++x) output[x] = exp(input[x]) / sum;
+        for (int x = 0; x < ncol; ++x) output[x] = exp(input[x] - maxval) / sum;
 }
 
 
