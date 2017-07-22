@@ -9,28 +9,35 @@
 
 /* TODO: Your code here */
 /* all your GPU kernel code, e.g. matrix_softmax_cross_entropy_kernel */
-__global__ void matrix_elementwise_multiply_by_const(int size, const float* input
+__global__ void relu_kernel(int size, const float* input, float* output) {
+        int y = blockIdx.x * blockDim.x + threadIdx.x;
+        if (y >= size) return;
+        float nw = input[y];
+        if (nw<0) output[y] = 0; else output[y] = nw;
+}
+
+__global__ void matrix_elementwise_multiply_by_const_kernel(int size, const float* input
                                                      , float value, float* output){
         int y = blockIdx.x * blockDim.x + threadIdx.x;
         if (y>=size) return;
         output[y] = input[y] * value;
 }
 
-__global__ void matrix_elementwise_multiply(int size, const float* input_a,
+__global__ void matrix_elementwise_multiply_kernel(int size, const float* input_a,
                                             const float* input_b,float* output) {
         int y = blockIdx.x * blockDim.x + threadIdx.x;
         if (y>=size) return;
         output[y] = input_a[y] * input_b[y];
 }
 
-__global__ void matrix_elementwise_add_by_const(int size, const float* input
+__global__ void matrix_elementwise_add_by_const_kernel(int size, const float* input
                                                 , float value, float* output){
         int y = blockIdx.x * blockDim.x + threadIdx.x;
         if (y>=size) return;
         output[y] = input[y] + value;
 }
 
-__global__ void matrix_elementwise_add(int size, const float* input_a,
+__global__ void matrix_elementwise_add_kernel(int size, const float* input_a,
                                        const float* input_b,float* output) {
         int y = blockIdx.x * blockDim.x + threadIdx.x;
         if (y>=size) return;
@@ -171,7 +178,7 @@ int DLGpuMatrixElementwiseAdd(const DLArrayHandle matA,
         dim3 threads;
         threads.x = THREADS_PER_BLOCK;
         int nblocks = (size + THREADS_PER_BLOCK -1)/THREADS_PER_BLOCK;
-        matrix_elementwise_add <<< nblocks, threads>>>(size,input_a,
+        matrix_elementwise_add_kernel <<< nblocks, threads>>>(size,input_a,
                                                        input_b,output_data);
         return 0;
 }
@@ -187,7 +194,7 @@ int DLGpuMatrixElementwiseAddByConst(const DLArrayHandle input, float val,
         dim3 threads;
         threads.x = THREADS_PER_BLOCK;
         int nblocks = (size + THREADS_PER_BLOCK -1)/THREADS_PER_BLOCK;
-        matrix_elementwise_add_by_const <<< nblocks, threads>>>(size,input_data
+        matrix_elementwise_add_by_const_kernel <<< nblocks, threads>>>(size,input_data
                                                                 ,value,output_data);
         return 0;
 }
@@ -206,9 +213,8 @@ int DLGpuMatrixElementwiseMultiply(const DLArrayHandle matA,
         dim3 threads;
         threads.x = THREADS_PER_BLOCK;
         int nblocks = (size + THREADS_PER_BLOCK -1)/THREADS_PER_BLOCK;
-        matrix_elementwise_multiply <<< nblocks, threads>>>(size,input_a,
+        matrix_elementwise_multiply_kernel <<< nblocks, threads>>>(size,input_a,
                                                             input_b,output_data);
-        return 0;
         return 0;
 }
 
@@ -223,7 +229,7 @@ int DLGpuMatrixMultiplyByConst(const DLArrayHandle input, float val,
         dim3 threads;
         threads.x = THREADS_PER_BLOCK;
         int nblocks = (size + THREADS_PER_BLOCK -1)/THREADS_PER_BLOCK;
-        matrix_elementwise_multiply_by_const <<< nblocks, threads>>>(size,input_data
+        matrix_elementwise_multiply_by_const_kernel <<< nblocks, threads>>>(size,input_data
                                                                      ,value,output_data);
         return 0;
 }
@@ -258,7 +264,15 @@ int DLGpuMatrixMultiply(const DLArrayHandle matA, bool transposeA,
 }
 
 int DLGpuRelu(const DLArrayHandle input, DLArrayHandle output) {
-        /* TODO: Your code here */
+        int ndim = input->ndim;
+        int size = 1;
+        for (int i=0; i<ndim; i++) size*=input->shape[i];
+        const float *input_data = (const float *)input->data;
+        float *output_data = ( float* )output->data;
+        dim3 threads;
+        threads.x = THREADS_PER_BLOCK;
+        int nblocks = (size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+        relu_kernel<<<nblocks, threads >>>(size, input_data, output_data);
         return 0;
 }
 
