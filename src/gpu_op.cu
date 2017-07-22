@@ -9,6 +9,12 @@
 
 /* TODO: Your code here */
 /* all your GPU kernel code, e.g. matrix_softmax_cross_entropy_kernel */
+__global__ void matrix_elementwise_add_by_const(int size, const float* input
+                                                , float value, float* output){
+        int y = blockIdx.x * blockDim.x + threadIdx.x;
+        if (y>=size) return;
+        output[y] = input[y] + value;
+}
 __global__ void matrix_elementwise_add(int size, const float* input_a,
                                        const float* input_b,float* output) {
         int y = blockIdx.x * blockDim.x + threadIdx.x;
@@ -34,7 +40,7 @@ __global__ void broadcast_to_kernel(const float* input, float* output, int lengt
 }
 
 __global__ void array_set_kernel(int size, float* array, float value) {
-        int y = blockIdx.x * THREADS_PER_BLOCK + threadIdx.x;
+        int y = blockIdx.x * blockDim.x + threadIdx.x;
         if (y >= size) return;
         array[y] = value;
 }
@@ -157,7 +163,17 @@ int DLGpuMatrixElementwiseAdd(const DLArrayHandle matA,
 
 int DLGpuMatrixElementwiseAddByConst(const DLArrayHandle input, float val,
                                      DLArrayHandle output) {
-        /* TODO: Your code here */
+        int ndim = input->ndim;
+        int size = 1;
+        for (int i=0; i<ndim; ++i) size*=input->shape[i];
+        const float* input_data = (const float*) input->data;
+        float value = val;
+        float* output_data = (float*) output->data;
+        dim3 threads;
+        threads.x = THREADS_PER_BLOCK;
+        int nblocks = (size + THREADS_PER_BLOCK -1)/THREADS_PER_BLOCK;
+        matrix_elementwise_add_by_const <<< nblocks, threads>>>(size,input_data
+                                                                ,value,output_data);
         return 0;
 }
 
