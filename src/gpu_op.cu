@@ -238,7 +238,7 @@ int DLGpuMatrixMultiply(const DLArrayHandle matA, bool transposeA,
         cublasCreate(&handle);
         int m = transposeA ? matA->shape[1] : matA->shape[0];
         int k = transposeA ? matA->shape[0] : matA->shape[1];
-        assert(k, (transposeB ? matB->shape[1] : matB->shape[0]));
+        assert(k == (transposeB ? matB->shape[1] : matB->shape[0]));
         int n = transposeB ? matB->shape[0] : matB->shape[1];
         float* A = (float *)matA->data;
         float* B = (float *)matB->data;
