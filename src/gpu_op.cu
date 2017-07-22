@@ -11,7 +11,7 @@
 /* all your GPU kernel code, e.g. matrix_softmax_cross_entropy_kernel */
 __global__ void matrix_elementwise_add(int size, const float* input_a,
                                        const float* input_b,float* output) {
-        int y = blockIdx.x * blockDim.x + threadIdx.x;
+        int y = threadIdx.y * threadDim.x + threadIdx.x;
         if (y>size) return;
         output[y] = input_a[y] + input_b[y];
 }
@@ -149,8 +149,8 @@ int DLGpuMatrixElementwiseAdd(const DLArrayHandle matA,
         float * output_data = (float*) output;
         dim3 threads;
         threads.x = THREADS_PER_BLOCK;
-        int nblocks = (size + THREADS_PER_BLOCK -1)/THREADS_PER_BLOCK;
-        matrix_elementwise_add <<< nblocks, threads>>>(size,input_a,
+        threads.y = (size + THREADS_PER_BLOCK -1)/THREADS_PER_BLOCK;
+        matrix_elementwise_add <<< 1, threads>>>(size,input_a,
                                                        input_b,output_data);
         return 0;
 }
