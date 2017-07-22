@@ -304,9 +304,11 @@ int DLGpuReluGradient(const DLArrayHandle input, const DLArrayHandle in_grad,
 int DLGpuSoftmax(const DLArrayHandle input, DLArrayHandle output) {
         /* DONE: My code here */
         assert(input->ndim == 2);
-        assert(output->ndim == 1);
+        assert(output->ndim == 2);
         int nrow = input->shape[0];
+        assert(nrow == output->shape[0]);
         int ncol = input->shape[1];
+        assert(ncol == output->shape[1]);
         const float *input_data = (const float *)input->data;
         float *output_data = (float *)output->data;
         dim3 threads;
