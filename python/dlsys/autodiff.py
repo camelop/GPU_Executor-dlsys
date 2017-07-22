@@ -756,9 +756,11 @@ class Executor(object):
             if (not use_numpy):
                 self.memory_plan(feed_shapes)
 
+        '''
         print("debug_shape: ")
         for key, value in self.node_to_shape_map.items():
             print(str(key) + " " + str(value))
+        '''
 
         # Traverse graph in topo order and compute values for all nodes.
         for node in self.topo_order:
