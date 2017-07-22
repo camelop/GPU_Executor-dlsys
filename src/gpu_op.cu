@@ -5,20 +5,22 @@
 #include <cuda_runtime.h>
 #include <stdio.h>
 
-#define THREADS_PER_BLOCK 1
+#define THREADS_PER_BLOCK 1024
 
 /* TODO: Your code here */
 /* all your GPU kernel code, e.g. matrix_softmax_cross_entropy_kernel */
 __global__ void reduce_sum_axis_zero_kernel(const float* input, float* output, int length, int size) {
         int y = blockIdx.x * THREADS_PER_BLOCK + threadIdx.x;
+        if (y >= length) return;
         int sum = 0;
         int upper = size * length;
         for (int i=0; i<upper; i+=length) sum += input[y+i];
         output[y] = sum;
 }
 
-__global__ void broadcast_to_kernel(const float* input, float* output, int length) {
+__global__ void broadcast_to_kernel(const float* input, float* output, int length, int size) {
         int y = blockIdx.x * THREADS_PER_BLOCK + threadIdx.x;
+        if (y >= size) return;
         int val = input[y];
         int s = y * length;
         for (int i=0; i<length; i++) output[s+i] = val;
@@ -55,9 +57,7 @@ __global__ void matrix_softmax_cross_entropy_kernel(int nrow, int ncol,
         extern __shared__ float loss_per_row[];
         // Two dimensional thread blocks.
         int y = blockIdx.x * THREADS_PER_BLOCK + threadIdx.x;
-        if (y >= nrow) {
-                return;
-        }
+        if (y >= nrow) return;
         input_a += y * ncol;
         input_b += y * ncol;
         float maxval = *input_a;
@@ -97,7 +97,7 @@ int DLGpuArraySet(DLArrayHandle arr, float value) {
         float *array = (float *)arr->data;
         float val = value;
         dim3 threads;
-        threads.x = size % THREADS_PER_BLOCK;
+        threads.x = THREADS_PER_BLOCK;
         int nblocks = (size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
         printf("blocks:%d\n",nblocks);
         array_set_kernel<<<nblocks, threads >>>(size, array, val);
@@ -114,9 +114,9 @@ int DLGpuBroadcastTo(const DLArrayHandle input, DLArrayHandle output) {
         const float* input_data = (const float*) input->data;
         float* output_data = (float*) output->data;
         dim3 threads;
-        threads.x = size % THREADS_PER_BLOCK;
+        threads.x = THREADS_PER_BLOCK;
         int nblocks = (size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
-        broadcast_to_kernel <<< nblocks, threads >>> (input_data, output_data, length);
+        broadcast_to_kernel <<< nblocks, threads >>> (input_data, output_data, length, size);
         return 0;
 }
 
@@ -128,7 +128,7 @@ int DLGpuReduceSumAxisZero(const DLArrayHandle input, DLArrayHandle output) {
         const float* input_data = (const float*) input->data;
         float* output_data = (float*) output->data;
         dim3 threads;
-        threads.x = length % THREADS_PER_BLOCK;
+        threads.x = THREADS_PER_BLOCK;
         int nblocks = (size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
         reduce_sum_axis_zero_kernel <<< nblocks, threads >>> (input_data, output_data, length, size);
         return 0;
@@ -189,7 +189,7 @@ int DLGpuSoftmax(const DLArrayHandle input, DLArrayHandle output) {
         const float *input_data = (const float *)input->data;
         float *output_data = (float *)output->data;
         dim3 threads;
-        threads.x = nrow % THREADS_PER_BLOCK;
+        threads.x = THREADS_PER_BLOCK;
         int nblocks = (nrow + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
         matrix_softmax_kernel<<<nblocks, threads>>>(
                 nrow, ncol, input_data, output_data);
@@ -214,7 +214,7 @@ int DLGpuSoftmaxCrossEntropy(const DLArrayHandle input_a,
         const float *input_data_b = (const float *)input_b->data;
         float *output_data = (float *)output->data;
         dim3 threads;
-        threads.x = nrow % THREADS_PER_BLOCK;
+        threads.x = THREADS_PER_BLOCK;
         int nblocks = (nrow + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
         // 1 block, each block with 'threads' number of threads with 'nrow' shared
         // memory size

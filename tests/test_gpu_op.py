@@ -186,3 +186,6 @@ def test_softmax_cross_entropy():
 
 
 test_array_set()
+test_broadcast_to()
+test_softmax()
+test_softmax_cross_entropy()
