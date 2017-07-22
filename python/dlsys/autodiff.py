@@ -685,8 +685,8 @@ class Executor(object):
                 return
             shape_to_arr_pool[array.shape].append(array)
 
-        # in case feed_shapes changes last time
-        self.node_to_arr_map = {}
+        # if changed
+        # self.node_to_arr_map = {}
 
         # for exclusive nodes
         for node in self.eval_node_list:
