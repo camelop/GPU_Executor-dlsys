@@ -21,7 +21,7 @@ __global__ void reduce_sum_axis_zero_kernel(const float* input, float* output, i
 __global__ void broadcast_to_kernel(const float* input, float* output, int length, int size) {
         int y = blockIdx.x * blockDim.x + threadIdx.x;
         if (y >= length) return;
-        int val = input[y];
+        float val = input[y];
         int upper = length*size;
         for (int i=y; i<upper; i+=length) output[i] = val;
 }
