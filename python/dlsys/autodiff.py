@@ -699,8 +699,9 @@ class Executor(object):
             if node in feed_shapes:
                 continue
             if node not in self.eval_node_list:
-                self.node_to_arr_map[node] = prepare(
-                    self.node_to_shape_map[node])
+                if node not in self.node_to_arr_map:
+                    self.node_to_arr_map[node] = prepare(
+                        self.node_to_shape_map[node])
             for input in node.inputs:
                 node_to_out_degree[input] -= 1
                 if node_to_out_degree[input] == 0:
