@@ -700,7 +700,7 @@ class Executor(object):
         for node in self.topo_order:
             if node in feed_shapes:
                 continue
-            if node not in self.eval_node_list
+            if node not in self.eval_node_list:
                 self.node_to_arr_map[node] = prepare(
                     self.node_to_shape_map[node])
             for input in node.inputs:
