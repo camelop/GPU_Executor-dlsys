@@ -687,7 +687,6 @@ class Executor(object):
 
         # in case feed_shapes changes last time
         self.node_to_arr_map = {}
-        exclusive_set = set()
 
         # for exclusive nodes
         for node in self.eval_node_list:
@@ -695,7 +694,6 @@ class Executor(object):
                 shape = self.node_to_shape_map[node]
                 new_array = alloc(shape)
                 self.node_to_arr_map[node] = new_array
-                exclusive_set.add(new_array)
 
         for node in self.topo_order:
             if node in feed_shapes:
@@ -706,7 +704,7 @@ class Executor(object):
             for input in node.inputs:
                 node_to_out_degree[input] -= 1
                 if node_to_out_degree[input] == 0:
-                    if input in exclusive_set:
+                    if input in self.eval_node_list:
                         continue
                     free(self.node_to_arr_map.get(input))
 

@@ -134,16 +134,13 @@ def mnist_logreg(executor_ctx=None, num_epochs=10, print_loss_val_each_epoch=Fal
                 print(loss_val)
 
     correct_predictions = []
-
-    checker = ad.Executor([y], ctx=executor_ctx)
-
     for minibatch_index in range(n_valid_batches):
         minibatch_start = minibatch_index * batch_size
         minibatch_end = (minibatch_index + 1) * batch_size
         valid_X_val[:] = valid_set_x[minibatch_start:minibatch_end]
         valid_y_val[:] = convert_to_one_hot(
             valid_set_y[minibatch_start:minibatch_end])
-        valid_y_predicted = checker.run(
+        _, _, _, valid_y_predicted = executor.run(
             feed_dict={
                 X: valid_X_val,
                 y_: valid_y_val,
@@ -157,8 +154,6 @@ def mnist_logreg(executor_ctx=None, num_epochs=10, print_loss_val_each_epoch=Fal
     accuracy = np.mean(correct_predictions)
     # validation set accuracy=0.928200
     print("validation set accuracy=%f" % accuracy)
-        print(W1_val)
-    print(b1_val)
 
 
 def mnist_mlp(executor_ctx=None, num_epochs=10, print_loss_val_each_epoch=False):
