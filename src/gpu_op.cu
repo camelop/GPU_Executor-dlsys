@@ -88,7 +88,7 @@ __global__ void matrix_softmax_cross_entropy_kernel(int nrow, int ncol,
 int DLGpuArraySet(DLArrayHandle arr, float value) {
         int size = arr->shape[0];
         int ndim = arr->ndim;
-        for (int i=1; i<ndim; i++) ndim*=input->shape[i];
+        for (int i=1; i<ndim; i++) ndim*=arr->shape[i];
         float *array = (float *)arr->data;
         float val = value;
         dim3 threads;
