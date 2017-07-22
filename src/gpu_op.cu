@@ -139,22 +139,17 @@ int DLGpuReduceSumAxisZero(const DLArrayHandle input, DLArrayHandle output) {
 
 int DLGpuMatrixElementwiseAdd(const DLArrayHandle matA,
                               const DLArrayHandle matB, DLArrayHandle output) {
-        printf("1\n");
         assert(matA->ndim == matB->ndim);
         int ndim = matA->ndim;
-        printf("2\n");
         for (int i=0; i<ndim; i++) assert(matA->shape[i] == matB->shape[i]);
-        printf("3\n");
         int size = 1;
         for (int i=0; i<ndim; i++) size*=matA->shape[i];
         const float * input_a = (const float*) matA->data;
         const float * input_b = (const float*) matB->data;
         float * output_data = (float*) output;
-        printf("4\n");
         dim3 threads;
         threads.x = THREADS_PER_BLOCK;
         int nblocks = (size + THREADS_PER_BLOCK -1)/THREADS_PER_BLOCK;
-        printf("5\n");
         matrix_elementwise_add <<< nblocks, threads>>>(size,input_a,
                                                        input_b,output_data);
         return 0;
