@@ -5,7 +5,7 @@
 #include <cuda_runtime.h>
 #include <stdio.h>
 
-#define THREADS_PER_BLOCK 256
+#define THREADS_PER_BLOCK 1
 
 /* TODO: Your code here */
 /* all your GPU kernel code, e.g. matrix_softmax_cross_entropy_kernel */
