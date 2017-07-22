@@ -616,7 +616,7 @@ class Executor(object):
         self.ctx = ctx
         self.topo_order = find_topo_sort(self.eval_node_list)
         self.node_to_shape_map = None
-        self.node_to_arr_map = {}
+        self.node_to_arr_map = None
         self.feed_shapes = None
 
     def infer_shape(self, feed_shapes):
@@ -685,8 +685,8 @@ class Executor(object):
                 return
             shape_to_arr_pool[array.shape].append(array)
 
-        # if changed
-        # self.node_to_arr_map = {}
+        # in case feed_shapes changes last time
+        self.node_to_arr_map = {}
 
         # for exclusive nodes
         for node in self.eval_node_list:
@@ -754,7 +754,7 @@ class Executor(object):
             self.infer_shape(feed_shapes)
             self.feed_shapes = feed_shapes
             # plan memory if using GPU
-            if (not use_numpy):
+            if (not use_numpy) and (not isinstance(self.node_to_shape_map, map)):
                 self.memory_plan(feed_shapes)
 
         '''
