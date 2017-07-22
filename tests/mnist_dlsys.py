@@ -53,7 +53,7 @@ def load_mnist_data(dataset):
 
 def convert_to_one_hot(vals):
     """Helper method to convert label array to one-hot array."""
-    one_hot_vals = np.zeros((vals.size, vals.max()+1))
+    one_hot_vals = np.zeros((vals.size, vals.max() + 1))
     one_hot_vals[np.arange(vals.size), vals] = 1
     return one_hot_vals
 
@@ -119,7 +119,7 @@ def mnist_logreg(executor_ctx=None, num_epochs=10, print_loss_val_each_epoch=Fal
             y_val[:] = convert_to_one_hot(
                 train_set_y[minibatch_start:minibatch_end])
             loss_val, grad_W1_val, grad_b1_val, _ = executor.run(
-                feed_dict = {X: X_val, y_: y_val, W1: W1_val, b1: b1_val})
+                feed_dict={X: X_val, y_: y_val, W1: W1_val, b1: b1_val})
             # SGD update
             if (executor_ctx is None):
                 W1_val = W1_val - lr * grad_W1_val
@@ -134,18 +134,21 @@ def mnist_logreg(executor_ctx=None, num_epochs=10, print_loss_val_each_epoch=Fal
                 print(loss_val)
 
     correct_predictions = []
+
+    checker = ad.Executor([y], ctx=executor_ctx)
+
     for minibatch_index in range(n_valid_batches):
         minibatch_start = minibatch_index * batch_size
         minibatch_end = (minibatch_index + 1) * batch_size
         valid_X_val[:] = valid_set_x[minibatch_start:minibatch_end]
         valid_y_val[:] = convert_to_one_hot(
             valid_set_y[minibatch_start:minibatch_end])
-        _, _, _, valid_y_predicted = executor.run(
+        valid_y_predicted = checker.run(
             feed_dict={
-                        X: valid_X_val,
-                        y_: valid_y_val,
-                        W1: W1_val,
-                        b1: b1_val},
+                X: valid_X_val,
+                y_: valid_y_val,
+                W1: W1_val,
+                b1: b1_val},
             convert_to_numpy_ret_vals=True)
         correct_prediction = np.equal(
             np.argmax(valid_y_val, 1),
@@ -154,7 +157,7 @@ def mnist_logreg(executor_ctx=None, num_epochs=10, print_loss_val_each_epoch=Fal
     accuracy = np.mean(correct_predictions)
     # validation set accuracy=0.928200
     print("validation set accuracy=%f" % accuracy)
-	print(W1_val)
+        print(W1_val)
     print(b1_val)
 
 
