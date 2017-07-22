@@ -224,7 +224,7 @@ int DLGpuMatrixMultiplyByConst(const DLArrayHandle input, float val,
         threads.x = THREADS_PER_BLOCK;
         int nblocks = (size + THREADS_PER_BLOCK -1)/THREADS_PER_BLOCK;
         matrix_elementwise_multiply_by_const <<< nblocks, threads>>>(size,input_data
-                                                                ,value,output_data);
+                                                                     ,value,output_data);
         return 0;
 }
 
@@ -234,7 +234,27 @@ int DLGpuMatrixMultiply(const DLArrayHandle matA, bool transposeA,
         /* TODO: Your code here */
         // Hint: use cublas
         // cublas assume matrix is column major
-        return 0;
+        static cublasHandle_t handle;
+        cublasCreate(&handle);
+        int m = transposeA ? matA->shape[1] : matA->shape[0];
+        int k = transposeA ? matA->shape[0] : matA->shape[1];
+        assert(k, (transposeB ? matB->shape[1] : matB->shape[0]));
+        int n = transposeB ? matB->shape[0] : matB->shape[1];
+        float* A = (float *)matA->data;
+        float* B = (float *)matB->data;
+        float* C = (float *)matC->data;
+        float alpha = 1.f; float beta = 0.f;
+        //C=alpha*A*B+beta*C
+        return (cublasSgemm(handle,
+                            transposeB ? CUBLAS_OP_T : CUBLAS_OP_N,
+                            transposeA ? CUBLAS_OP_T : CUBLAS_OP_N,
+                            n, m, k,
+                            &alpha,
+                            B, transposeB ? k : n,
+                            A, transposeA ? m : k,
+                            &beta,
+                            C, n)
+                == CUBLAS_STATUS_SUCCESS) ? 0 : -1;
 }
 
 int DLGpuRelu(const DLArrayHandle input, DLArrayHandle output) {
