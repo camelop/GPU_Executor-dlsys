@@ -13,6 +13,7 @@ def test_array_set():
         for j in range(200):
             if x[i][j] != 1:
                 print(str(i) + ' ' + str(j) + ' ' + str(x[i][j]))
+                break
     np.testing.assert_allclose(np.ones(shape), x)
     # zeroslike
     gpu_op.array_set(arr_x, 0.)
