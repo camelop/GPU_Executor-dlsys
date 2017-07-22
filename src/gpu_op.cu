@@ -76,7 +76,7 @@ __global__ void matrix_softmax_cross_entropy_kernel(int nrow, int ncol,
         // Compute reduce_mean across rows.
         float mean_loss = 0;
         // Use a single thread to reduce mean across rows.
-        if ((threadIdx.x == 0) && (threadIdx.y == 0)) {
+        if ((blockIdx.x == 0) && (threadIdx.x == 0)) {
                 for (int i = 0; i < nrow; ++i) {
                         mean_loss += loss_per_row[i];
                 }

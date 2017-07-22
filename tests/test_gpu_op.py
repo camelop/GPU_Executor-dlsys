@@ -177,4 +177,5 @@ def test_softmax_cross_entropy():
         -np.sum(y_ * np.log(autodiff.softmax_func(y)), axis=1), keepdims=True)
     np.testing.assert_allclose(cross_entropy, out, rtol=1e-5)
 
+
 test_array_set()
