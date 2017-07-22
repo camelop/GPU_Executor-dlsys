@@ -9,6 +9,13 @@
 
 /* TODO: Your code here */
 /* all your GPU kernel code, e.g. matrix_softmax_cross_entropy_kernel */
+__global__ void matrix_elementwise_add(int size, const float* input_a,
+                                       const float* input_b,float* output) {
+        int y = blockIdx.x * blockDim.x + threadIdx.x;
+        if (y>size) return;
+        output[y] = input_a[y] + input_b[y];
+}
+
 __global__ void reduce_sum_axis_zero_kernel(const float* input, float* output, int length, int size) {
         int y = blockIdx.x * blockDim.x + threadIdx.x;
         if (y >= length) return;
@@ -35,7 +42,7 @@ __global__ void array_set_kernel(int size, float* array, float value) {
 __global__ void matrix_softmax_kernel(int nrow, int ncol,
                                       const float* input,
                                       float* output) {
-        int y = blockIdx.x * THREADS_PER_BLOCK + threadIdx.x;
+        int y = blockIdx.x * blockDim.x + threadIdx.x;
         if (y >= nrow) return;
         input += y * ncol;
         output += y * ncol;
@@ -132,7 +139,19 @@ int DLGpuReduceSumAxisZero(const DLArrayHandle input, DLArrayHandle output) {
 
 int DLGpuMatrixElementwiseAdd(const DLArrayHandle matA,
                               const DLArrayHandle matB, DLArrayHandle output) {
-        /* TODO: Your code here */
+        assert(matA->ndim == matB->ndim);
+        int ndim = matA->ndim;
+        for (int i=0; i<ndim; i++) assert(matA->shape[i] == matB->shape[i]);
+        int size = 1;
+        for (int i=0; i<ndim; i++) size*=matA->shape[i];
+        const float * input_a = (const float*) matA->data;
+        const float * input_b = (const float*) matB->data;
+        float * output = (float*) output;
+        dim3 threads;
+        threads.x = THREADS_PER_BLOCK;
+        int nblocks = (size + THREADS_PER_BLOCK -1)/THREADS_PER_BLOCK;
+        matrix_elementwise_add <<< nblocks, threads>>>(size,input_a,
+                                                       input_b,output);
         return 0;
 }
 
