@@ -466,7 +466,7 @@ class BroadcastToOp(Op):
     def infer_shape(self, node, input_shapes):
         """DONE: My code here"""
         assert(len(input_shapes) == 2)
-        return input_shapes[1]
+        return broadcast_rule(input_shapes[0], input_shapes[1])
 
 
 def softmax_func(y):
@@ -658,6 +658,7 @@ class Executor(object):
         feed_shapes: node->shapes mapping for feed_dict nodes.
         """
         """TODO: Your code here"""
+
         shape_to_arr_pool = {}
         for node, shape in self.node_to_shape_map.items():
             if node not in feed_shapes:
@@ -690,10 +691,11 @@ class Executor(object):
 
         # for exclusive nodes
         for node in self.eval_node_list:
-            shape = self.node_to_shape_map[node]
-            new_array = alloc(shape)
-            self.node_to_arr_map[node] = new_array
-            exclusive_set.add(new_array)
+            if node not in self.node_to_arr_map:
+                shape = self.node_to_shape_map[node]
+                new_array = alloc(shape)
+                self.node_to_arr_map[node] = new_array
+                exclusive_set.add(new_array)
 
         for node in self.topo_order:
             if node in feed_shapes:
