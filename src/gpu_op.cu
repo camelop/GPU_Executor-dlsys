@@ -287,12 +287,12 @@ int DLGpuRelu(const DLArrayHandle input, DLArrayHandle output) {
 int DLGpuReluGradient(const DLArrayHandle input, const DLArrayHandle in_grad,
                       DLArrayHandle output) {
         int ndim=input->ndim;
-        assert(nidm == in_grad->ndim);
+        assert(ndim == in_grad->ndim);
         int size = 1;
         for (int i=0; i<ndim; ++i) size*=input->shape[i];
         const float* input_data = (const float*) input->data;
         const float* input_grad_data = (const float*) in_grad->data;
-        float* output_data = (float*) outpu->data;
+        float* output_data = (float*) output->data;
         dim3 threads;
         threads.x = THREADS_PER_BLOCK;
         int nblocks = (size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
