@@ -154,6 +154,8 @@ def mnist_logreg(executor_ctx=None, num_epochs=10, print_loss_val_each_epoch=Fal
     accuracy = np.mean(correct_predictions)
     # validation set accuracy=0.928200
     print("validation set accuracy=%f" % accuracy)
+	print(W1_val)
+    print(b1_val)
 
 
 def mnist_mlp(executor_ctx=None, num_epochs=10, print_loss_val_each_epoch=False):
