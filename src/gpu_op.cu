@@ -146,12 +146,12 @@ int DLGpuMatrixElementwiseAdd(const DLArrayHandle matA,
         for (int i=0; i<ndim; i++) size*=matA->shape[i];
         const float * input_a = (const float*) matA->data;
         const float * input_b = (const float*) matB->data;
-        float * output = (float*) output;
+        float * output_data = (float*) output;
         dim3 threads;
         threads.x = THREADS_PER_BLOCK;
         int nblocks = (size + THREADS_PER_BLOCK -1)/THREADS_PER_BLOCK;
         matrix_elementwise_add <<< nblocks, threads>>>(size,input_a,
-                                                       input_b,output);
+                                                       input_b,output_data);
         return 0;
 }
 
