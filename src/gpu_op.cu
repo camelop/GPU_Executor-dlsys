@@ -99,7 +99,7 @@ __global__ void matrix_softmax_cross_entropy_kernel(int nrow, int ncol,
         // Dynamic shared memory, size provided at kernel launch.
         extern __shared__ float loss_per_row[];
         // Two dimensional thread blocks.
-        int y = blockIdx.x * THREADS_PER_BLOCK + threadIdx.x;
+        int y = blockIdx.x * blockDim.x + threadIdx.x;
         if (y >= nrow) return;
         input_a += y * ncol;
         input_b += y * ncol;
@@ -341,7 +341,7 @@ int DLGpuSoftmaxCrossEntropy(const DLArrayHandle input_a,
         int nblocks = (nrow + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
         // 1 block, each block with 'threads' number of threads with 'nrow' shared
         // memory size
-        matrix_softmax_cross_entropy_kernel<<<nblocks, threads >>>(
+        matrix_softmax_cross_entropy_kernel<<<nblocks, threads,nrow * sizeof(float) >>>(
                 nrow, ncol, input_data_a, input_data_b, output_data);
         return 0;
 }
