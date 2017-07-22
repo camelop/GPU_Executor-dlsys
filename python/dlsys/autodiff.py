@@ -191,7 +191,6 @@ class AddByConstOp(Op):
 
     def infer_shape(self, node, input_shapes):
         """DONE: My code here"""
-        assert(input_shapes[0] == node.const_attr.shape)
         return input_shapes[0]
 
 
@@ -259,7 +258,6 @@ class MulByConstOp(Op):
 
     def infer_shape(self, node, input_shapes):
         """DONE: My code here"""
-        assert(input_shapes[0] == node.const_attr.shape)
         return input_shapes[0]
 
 
