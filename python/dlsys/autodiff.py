@@ -618,6 +618,7 @@ class Executor(object):
         self.node_to_shape_map = None
         self.node_to_arr_map = None
         self.feed_shapes = None
+        self.eval_node_to_arr_pool = {}
 
     def infer_shape(self, feed_shapes):
         """Given shapes of feed_dict nodes, infer shape for all nodes in graph.
@@ -657,7 +658,7 @@ class Executor(object):
         ----------
         feed_shapes: node->shapes mapping for feed_dict nodes.
         """
-        """TODO: Your code here"""
+        """DONE: My code here"""
 
         shape_to_arr_pool = {}
         for node, shape in self.node_to_shape_map.items():
@@ -671,19 +672,19 @@ class Executor(object):
             for input in node.inputs:
                 node_to_out_degree[input] += 1
 
-        def alloc(shape):
-            return ndarray.empty(shape, ctx=self.ctx)
-
         def prepare(shape):
             if shape_to_arr_pool[shape]:
                 return shape_to_arr_pool[shape].pop()
             else:
-                return alloc(shape)
+                return ndarray.empty(shape, ctx=self.ctx)
 
         def free(array):
             if array is None:
                 return
             shape_to_arr_pool[array.shape].append(array)
+
+        for node in self.eval_node_to_arr_pool:
+            free(self.eval_node_to_arr_pool.get(node))
 
         # in case feed_shapes changes last time
         self.node_to_arr_map = {}
@@ -692,8 +693,9 @@ class Executor(object):
         for node in self.eval_node_list:
             if node not in self.node_to_arr_map:
                 shape = self.node_to_shape_map[node]
-                new_array = alloc(shape)
+                new_array = prepare(shape)
                 self.node_to_arr_map[node] = new_array
+                self.eval_node_to_arr_pool[node] = new_array
 
         for node in self.topo_order:
             if node in feed_shapes:
@@ -754,7 +756,7 @@ class Executor(object):
             self.infer_shape(feed_shapes)
             self.feed_shapes = feed_shapes
             # plan memory if using GPU
-            if (not use_numpy) and (not isinstance(self.node_to_arr_map, dict)):
+            if (not use_numpy):
                 self.memory_plan(feed_shapes)
 
         '''
