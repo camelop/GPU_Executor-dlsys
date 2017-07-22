@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cublas_v2.h>
 #include <cuda_runtime.h>
+#include <stdio.h>
 
 /* TODO: Your code here */
 /* all your GPU kernel code, e.g. matrix_softmax_cross_entropy_kernel */
@@ -89,6 +90,7 @@ int DLGpuArraySet(DLArrayHandle arr, float value) {
         int size = arr->shape[0];
         int ndim = arr->ndim;
         for (int i=1; i<ndim; i++) size*=arr->shape[i];
+        printf("size:%d\n",size);
         float *array = (float *)arr->data;
         float val = value;
         dim3 threads;
