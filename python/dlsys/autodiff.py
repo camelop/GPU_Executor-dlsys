@@ -467,7 +467,8 @@ class BroadcastToOp(Op):
 
     def infer_shape(self, node, input_shapes):
         """DONE: My code here"""
-        return node.input_vals[1].shape
+        assert(len(input_shapes) == 2)
+        return input_shapes[1]
 
 
 def softmax_func(y):
